@@ -18,7 +18,14 @@ class PuasaController extends Controller
 
     public function create()
     {
-        return view('puasa.create');
+        $ringkasanTahunan = Puasa::where('user_id', auth()->id())
+            ->select('tahun')
+            ->selectRaw('MAX(jumlah_hari) as jumlah_asal, SUM(telah_ganti) as jumlah_ganti')
+            ->groupBy('tahun')
+            ->get()
+            ->keyBy('tahun');
+
+        return view('puasa.create', compact('ringkasanTahunan'));
     }
 
     public function store(Request $request)
@@ -30,10 +37,15 @@ class PuasaController extends Controller
             'telah_ganti' => 'nullable|integer|min:0',
         ]);
 
+        $rekodTahun = Puasa::where('user_id', auth()->id())
+            ->where('tahun', $request->tahun)
+            ->selectRaw('MAX(jumlah_hari) as jumlah_asal, SUM(telah_ganti) as jumlah_ganti')
+            ->first();
+
         Puasa::create([
             'user_id' => auth()->id(),
             'tahun' => $request->tahun,
-            'jumlah_hari' => $request->jumlah_hari,
+            'jumlah_hari' => $rekodTahun->jumlah_ganti > 0 ? $rekodTahun->jumlah_asal : $request->jumlah_hari,
             'telah_ganti' => $request->telah_ganti ?? 0,
             'tarikh_ganti' => $request->tarikh_ganti,
         ]);

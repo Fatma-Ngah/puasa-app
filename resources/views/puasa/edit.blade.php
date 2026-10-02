@@ -12,11 +12,11 @@
             <input type="number" name="tahun" value="{{ $puasa->tahun }}" class="w-full border border-gray-300 rounded px-3 py-2" required>
         </div>
         <div>
-            <label class="block text-gray-700">Jumlah Hari</label>
+            <label class="block text-gray-700">Jumlah Asal Puasa Tahun Ini</label>
             <input type="number" name="jumlah_hari" value="{{ $puasa->jumlah_hari }}" class="w-full border border-gray-300 rounded px-3 py-2" required>
         </div>
         <div>
-            <label class="block text-gray-700">Telah Ganti</label>
+            <label class="block text-gray-700">Hari Diganti Dalam Rekod Ini</label>
             <input type="number" name="telah_ganti" value="{{ $puasa->telah_ganti }}" class="w-full border border-gray-300 rounded px-3 py-2">
         </div>
         <div>
