@@ -9,11 +9,12 @@
         @method('PUT')
         <div>
             <label class="block text-gray-700">Tahun</label>
-            <input type="number" name="tahun" value="{{ $puasa->tahun }}" class="w-full border border-gray-300 rounded px-3 py-2" required>
+            <input type="number" value="{{ $puasa->tahun }}" class="w-full border border-gray-300 rounded px-3 py-2" readonly>
         </div>
         <div>
-            <label class="block text-gray-700">Jumlah Asal Puasa Tahun Ini</label>
-            <input type="number" name="jumlah_hari" value="{{ $puasa->jumlah_hari }}" class="w-full border border-gray-300 rounded px-3 py-2" required>
+            <label class="block text-gray-700">Jumlah Baki Puasa Tahun Ini</label>
+            <input type="number" value="{{ $bakiTahunan }}" class="w-full border border-gray-300 rounded px-3 py-2" readonly>
+            <p class="mt-1 text-sm text-gray-500">Baki semasa daripada semua rekod tahun ini. Baki dikira semula selepas perubahan disimpan.</p>
         </div>
         <div>
             <label class="block text-gray-700">Hari Diganti Dalam Rekod Ini</label>

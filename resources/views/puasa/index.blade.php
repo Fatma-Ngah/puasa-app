@@ -44,9 +44,9 @@
                     <thead class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
                         <tr>
                             <th scope="col" class="px-6 py-4 font-semibold">Tahun puasa</th>
-                            <th scope="col" class="px-6 py-4 text-right font-semibold">Jumlah hari</th>
+                            <th scope="col" class="px-6 py-4 text-right font-semibold">Baki sebelum ganti</th>
                             <th scope="col" class="px-6 py-4 text-right font-semibold">Diganti kali ini</th>
-                            <th scope="col" class="px-6 py-4 text-right font-semibold">Baki rekod</th>
+                            <th scope="col" class="px-6 py-4 text-right font-semibold">Baki selepas ganti</th>
                             <th scope="col" class="px-6 py-4 font-semibold">Tarikh ganti</th>
                             <th scope="col" class="px-6 py-4 text-right font-semibold">Tindakan</th>
                         </tr>
@@ -55,9 +55,9 @@
                         @foreach ($puasas as $puasa)
                             <tr class="transition-colors hover:bg-emerald-50/50">
                                 <th scope="row" class="px-6 py-5"><span class="inline-flex rounded-lg bg-slate-100 px-3 py-2 font-bold text-slate-700">{{ $puasa->tahun }}</span></th>
-                                <td class="px-6 py-5 text-right text-slate-600">{{ number_format($puasa->jumlah_hari) }} hari</td>
+                                <td class="px-6 py-5 text-right text-slate-600">{{ number_format($puasa->baki_sebelum) }} hari</td>
                                 <td class="px-6 py-5 text-right font-semibold text-emerald-700">{{ number_format($puasa->telah_ganti) }} hari</td>
-                                <td class="px-6 py-5 text-right"><span @class(['inline-flex rounded-full px-3 py-1 text-xs font-semibold', 'bg-amber-50 text-amber-800' => $puasa->baki > 0, 'bg-emerald-50 text-emerald-700' => $puasa->baki <= 0])>{{ number_format($puasa->baki) }} hari</span></td>
+                                <td class="px-6 py-5 text-right"><span @class(['inline-flex rounded-full px-3 py-1 text-xs font-semibold', 'bg-amber-50 text-amber-800' => $puasa->baki_selepas > 0, 'bg-emerald-50 text-emerald-700' => $puasa->baki_selepas <= 0])>{{ number_format($puasa->baki_selepas) }} hari</span></td>
                                 <td class="px-6 py-5 text-slate-600">{{ $puasa->tarikh_ganti ? $puasa->tarikh_ganti->format('d/m/Y') : 'Belum ditetapkan' }}</td>
                                 <td class="px-6 py-5">
                                     <div class="flex items-center justify-end gap-2">
@@ -74,7 +74,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class="border-t border-slate-100 bg-slate-50 px-6 py-4 text-xs leading-5 text-slate-500">Baki rekod ialah jumlah hari ditolak hari diganti dalam catatan tersebut. Lihat <a href="{{ route('dashboard') }}" class="font-semibold text-emerald-700 underline">dashboard</a> untuk baki terkini setiap tahun.</div>
+            <div class="border-t border-slate-100 bg-slate-50 px-6 py-4 text-xs leading-5 text-slate-500">Baki dikira secara terkumpul mengikut tarikh ganti bagi setiap tahun. Lihat <a href="{{ route('dashboard') }}" class="font-semibold text-emerald-700 underline">dashboard</a> untuk baki terkini setiap tahun.</div>
         @endif
     </section>
 </div>

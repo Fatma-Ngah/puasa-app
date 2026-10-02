@@ -86,4 +86,46 @@ class DashboardTest extends TestCase
     {
         $this->get('/dashboard')->assertRedirect('/login');
     }
+
+    public function test_list_shows_running_balances_per_year_in_date_order(): void
+    {
+        $user = User::factory()->create();
+        foreach ([[2026, 22, 1, '2026-10-01'], [2025, 5, 1, '2026-09-29'], [2026, 22, 1, '2026-09-28'], [2026, 22, 25, '2026-10-01']] as [$year, $total, $replaced, $date]) {
+            Puasa::create(['user_id' => $user->id, 'tahun' => $year, 'jumlah_hari' => $total, 'telah_ganti' => $replaced, 'tarikh_ganti' => $date]);
+        }
+        Puasa::create(['user_id' => User::factory()->create()->id, 'tahun' => 2026, 'jumlah_hari' => 30, 'telah_ganti' => 5]);
+
+        $this->withoutVite()->actingAs($user)->get(route('puasa.index'))
+            ->assertOk()
+            ->assertSee('Baki sebelum ganti')->assertSee('Baki selepas ganti')
+            ->assertViewHas('puasas', fn ($rows) => $rows->pluck('baki_sebelum')->all() === [22, 5, 21, 20]
+                && $rows->pluck('baki_selepas')->all() === [21, 4, 20, 0]);
+    }
+
+    public function test_existing_year_without_replacements_does_not_require_original_total(): void
+    {
+        $user = User::factory()->create();
+        Puasa::create(['user_id' => $user->id, 'tahun' => 2026, 'jumlah_hari' => 7, 'telah_ganti' => 0]);
+
+        $this->actingAs($user)->post('/puasa', ['tahun' => 2026, 'telah_ganti' => 1])
+            ->assertSessionHasNoErrors()->assertRedirect(route('puasa.index'));
+
+        $this->assertSame(7, (int) Puasa::latest('id')->first()->jumlah_hari);
+    }
+
+    public function test_edit_displays_annual_balance_and_preserves_original_total(): void
+    {
+        $user = User::factory()->create();
+        $record = Puasa::create(['user_id' => $user->id, 'tahun' => 2026, 'jumlah_hari' => 7, 'telah_ganti' => 1]);
+        Puasa::create(['user_id' => $user->id, 'tahun' => 2026, 'jumlah_hari' => 7, 'telah_ganti' => 2]);
+
+        $this->withoutVite()->actingAs($user)->get(route('puasa.edit', $record))
+            ->assertOk()->assertViewHas('bakiTahunan', 4)
+            ->assertSee('Jumlah Baki Puasa Tahun Ini')->assertDontSee('Jumlah Asal Puasa Tahun Ini');
+
+        $this->put(route('puasa.update', $record), ['telah_ganti' => 2])
+            ->assertSessionHasNoErrors()->assertRedirect(route('puasa.index'));
+        $this->assertSame(7, (int) $record->fresh()->jumlah_hari);
+        $this->get('/dashboard')->assertOk()->assertViewHas('jumlahBaki', 3);
+    }
 }

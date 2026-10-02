@@ -59,7 +59,7 @@
         const panduan = document.getElementById('jumlah-panduan');
         const kemaskini = (kekalkanInput = false) => {
             const rekod = ringkasan[tahun.value];
-            const sudahGanti = rekod && Number(rekod.jumlah_ganti) > 0;
+            const sudahGanti = Boolean(rekod);
             label.textContent = sudahGanti ? 'Jumlah Baki Puasa Tahun Ini' : 'Jumlah Asal Puasa Tahun Ini';
             paparan.readOnly = Boolean(sudahGanti);
             paparan.min = sudahGanti ? '0' : '1';

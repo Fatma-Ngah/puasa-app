@@ -9,9 +9,19 @@ class PuasaController extends Controller
 {
     public function index()
     {
-      $puasas = Puasa::where('user_id', auth()->id())
-        ->orderBy('tarikh_ganti', 'asc') // order ikut tarikh_ganti naik
-        ->get();
+        $puasas = Puasa::where('user_id', auth()->id())
+            ->orderBy('tarikh_ganti', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $bakiTahunan = $puasas->groupBy('tahun')
+            ->map(fn ($rekod) => (int) $rekod->max('jumlah_hari'))->all();
+
+        foreach ($puasas as $puasa) {
+            $puasa->baki_sebelum = $bakiTahunan[$puasa->tahun];
+            $bakiTahunan[$puasa->tahun] = max(0, $puasa->baki_sebelum - $puasa->telah_ganti);
+            $puasa->baki_selepas = $bakiTahunan[$puasa->tahun];
+        }
 
         return view('puasa.index', compact('puasas'));
     }
@@ -32,7 +42,6 @@ class PuasaController extends Controller
     {
         $request->validate([
             'tahun' => 'required|integer',
-            'jumlah_hari' => 'required|integer|min:1',
             'tarikh_ganti' => 'nullable|date',
             'telah_ganti' => 'nullable|integer|min:0',
         ]);
@@ -42,10 +51,14 @@ class PuasaController extends Controller
             ->selectRaw('MAX(jumlah_hari) as jumlah_asal, SUM(telah_ganti) as jumlah_ganti')
             ->first();
 
+        $request->validate([
+            'jumlah_hari' => ($rekodTahun->jumlah_asal !== null ? 'nullable' : 'required').'|integer|min:1',
+        ]);
+
         Puasa::create([
             'user_id' => auth()->id(),
             'tahun' => $request->tahun,
-            'jumlah_hari' => $rekodTahun->jumlah_ganti > 0 ? $rekodTahun->jumlah_asal : $request->jumlah_hari,
+            'jumlah_hari' => $rekodTahun->jumlah_asal ?? $request->jumlah_hari,
             'telah_ganti' => $request->telah_ganti ?? 0,
             'tarikh_ganti' => $request->tarikh_ganti,
         ]);
@@ -58,7 +71,13 @@ class PuasaController extends Controller
     {
         $this->authorizeOwner($puasa);
 
-        return view('puasa.edit', compact('puasa'));
+        $rekodTahun = Puasa::where('user_id', auth()->id())
+            ->where('tahun', $puasa->tahun)
+            ->selectRaw('MAX(jumlah_hari) as jumlah_asal, SUM(telah_ganti) as jumlah_ganti')
+            ->first();
+        $bakiTahunan = max(0, $rekodTahun->jumlah_asal - $rekodTahun->jumlah_ganti);
+
+        return view('puasa.edit', compact('puasa', 'bakiTahunan'));
     }
 
     public function update(Request $request, Puasa $puasa)
@@ -68,8 +87,6 @@ class PuasaController extends Controller
 
         // Validasi input
         $validated = $request->validate([
-            'tahun' => 'required|integer|min:1',
-            'jumlah_hari' => 'required|integer|min:1',
             'telah_ganti' => 'required|integer|min:0',
             'tarikh_ganti' => 'nullable|date',
         ]);
